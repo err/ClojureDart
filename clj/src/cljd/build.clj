@@ -579,11 +579,14 @@
                                     (case mode
                                       "!" (ack! text)
                                       ("=" "o" "e")
-                                      (doto out
-                                        (.write text)
-                                        (cond->
-                                            (= cont " ") (doto (.write "\n"))
-                                            (not= cont ">") (doto .flush))))
+                                      (try
+                                        (doto out
+                                          (.write text)
+                                          (cond->
+                                              (= cont " ") (doto (.write "\n"))
+                                              (not= cont ">") (doto .flush)))
+                                        (catch java.io.IOException _
+                                          (swap! *repl-states dissoc repltag))))
                                     (println line)))
 
                                 (case kind
