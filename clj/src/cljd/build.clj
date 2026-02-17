@@ -288,29 +288,29 @@
           (let [reader (java.io.PipedReader.)
                 writer (java.io.PipedWriter. reader)
                 [{prev repltag} {curr repltag}] (swap-vals! *repl-states
-                                                  assoc repltag
-                                                  {:out true-out
-                                                   :writer writer
-                                                   :reader reader
-                                                   :restart! self})]
+                                                            assoc repltag
+                                                            {:out true-out
+                                                             :writer writer
+                                                             :reader reader
+                                                             :restart! self})]
             (some-> ^java.io.Writer (:writer prev) .close)
             curr))
         {:keys [reader writer]} (reset-repl-state!)]
 
     (daemon ; copy true-in to actual in of the repl
-      (let [^chars buffer (make-array Character/TYPE 1024)]
-        (loop [size 0 ^java.io.Writer writer writer]
-          (case size
-            -1 nil
-            0 (recur (.read true-in buffer) writer)
-            (if (try
-                  (.write writer buffer 0 size)
-                  true
-                  (catch java.io.IOException e
-                    (when-not (= "Pipe closed" (.getMessage e))
-                      (throw e))))
-              (recur 0 writer)
-              (recur size (:writer (@*repl-states repltag))))))))
+     (let [^chars buffer (make-array Character/TYPE 1024)]
+       (loop [size 0 ^java.io.Writer writer writer]
+         (case size
+           -1 (try (.close writer) (catch java.io.IOException _))
+           0 (recur (.read true-in buffer) writer)
+           (if (try
+                 (.write writer buffer 0 size)
+                 true
+                 (catch java.io.IOException e
+                   (when-not (= "Pipe closed" (.getMessage e))
+                     (throw e))))
+             (recur 0 writer)
+             (recur size (:writer (@*repl-states repltag))))))))
 
     (loop [reader reader]
       (binding [*in* reader]
