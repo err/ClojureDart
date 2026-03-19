@@ -1277,7 +1277,7 @@
 (defn repl-hud [child]
   (widget
     :managed [*hud-enabled (atom nil) :dispose nil
-              _ (println "flutter: [* RDY)_") :dispose nil]
+              _ (println "[* RDY)_") :dispose nil]
     (widgets/Stack
       .alignment widgets/AlignmentGeometry.topLeft
       .fit widgets/StackFit.expand
